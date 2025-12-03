@@ -21,7 +21,7 @@ const ActivitiesPage = () => {
 
 function App() {
   
-  const { token, tokenData, logIn, logOut, isAuthenticated } 
+  const { token, tokenData, logIn, logout, isAuthenticated } 
       = useContext(AuthContext);
   const dispatch = useDispatch();
   const [authReady, setAuthReady] = useState(false);
