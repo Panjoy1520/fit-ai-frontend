@@ -1,76 +1,205 @@
-import { Box, Card, CardContent, Divider, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router';
-import { getActivityDetail } from '../services/api';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import { getActivityDetail } from "../services/api";
 
 const ActivityDetail = () => {
-
   const { id } = useParams();
   const [activity, setActivity] = useState(null);
-  const [recommendation, setRecommendation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchActivityDetail = async () => {
       try {
+        setLoading(true);
+        setError("");
         const response = await getActivityDetail(id);
         setActivity(response.data);
-        setRecommendation(response.data.recommendation);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load activity details. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
     fetchActivityDetail();
   }, [id]);
 
-  if (!activity) {
-    return <Typography>Loading...</Typography>
+  if (loading) {
+    return (
+      <section className="w-full bg-slate-50 py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">
+            Loading activity details…
+          </div>
+        </div>
+      </section>
+    );
   }
 
+  if (error || !activity) {
+    return (
+      <section className="w-full bg-slate-50 py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
+            {error || "Activity not found."}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const createdAt = activity.createdAt
+    ? new Date(activity.createdAt).toLocaleString()
+    : "—";
+
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
-            <Card sx={{ mb: 2 }}>
-                <CardContent>
-                    <Typography variant="h5" gutterBottom>Activity Details</Typography>
-                    <Typography>Type: {activity.type}</Typography>
-                    <Typography>Duration: {activity.duration} minutes</Typography>
-                    <Typography>Calories Burned: {activity.caloriesBurned}</Typography>
-                    <Typography>Date: {new Date(activity.createdAt).toLocaleString()}</Typography>
-                </CardContent>
-            </Card>
+    <section className="w-full bg-slate-50 py-10">
+      <div className="max-w-3xl mx-auto px-4 space-y-6">
+        {/* Activity Details Card */}
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 md:p-7">
+          <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900">
+                Activity details
+              </h1>
+              <p className="text-xs md:text-sm text-slate-500">
+                Logged session overview
+              </p>
+            </div>
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              {activity.type || "Activity"}
+            </span>
+          </div>
 
-            {recommendation && (
-                <Card>
-                    <CardContent>
-                        <Typography variant="h5" gutterBottom>AI Recommendation</Typography>
-                        <Typography variant="h6">Analysis</Typography>
-                        <Typography paragraph>{activity.recommendation}</Typography>
-                        
-                        <Divider sx={{ my: 2 }} />
-                        
-                        <Typography variant="h6">Improvements</Typography>
-                        {activity?.improvements?.map((improvement, index) => (
-                            <Typography key={index} paragraph>• {activity.improvements}</Typography>
-                        ))}
-                        
-                        <Divider sx={{ my: 2 }} />
-                        
-                        <Typography variant="h6">Suggestions</Typography>
-                        {activity?.suggestions?.map((suggestion, index) => (
-                            <Typography key={index} paragraph>• {suggestion}</Typography>
-                        ))}
-                        
-                        <Divider sx={{ my: 2 }} />
-                        
-                        <Typography variant="h6">Safety Guidelines</Typography>
-                        {activity?.safety?.map((safety, index) => (
-                            <Typography key={index} paragraph>• {safety}</Typography>
-                        ))}
-                    </CardContent>
-                </Card>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-slate-500">
+                Duration
+              </p>
+              <p className="text-sm font-semibold text-slate-900">
+                {activity.duration} min
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-slate-500">
+                Calories burned
+              </p>
+              <p className="text-sm font-semibold text-slate-900">
+                {activity.caloriesBurned}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-slate-500">
+                Logged at
+              </p>
+              <p className="text-sm font-semibold text-slate-900">
+                {createdAt}
+              </p>
+            </div>
+
+            {activity?.intensity && (
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Intensity
+                </p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {activity.intensity}
+                </p>
+              </div>
             )}
-        </Box>
-  )
-}
+          </div>
+        </div>
 
-export default ActivityDetail
+        {/* AI Recommendation Card */}
+        {activity.recommendation && (
+          <div className="rounded-2xl bg-white border border-emerald-200 shadow-sm p-6 md:p-7">
+            <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-slate-900">
+                  AI Recommendation
+                </h2>
+                <p className="text-xs md:text-sm text-slate-500">
+                  Personalized insights based on your session.
+                </p>
+              </div>
+              <span className="inline-flex items-center rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-white">
+                Generated by FitAI
+              </span>
+            </div>
+
+            {/* Analysis */}
+            <div className="space-y-2 mb-5">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Analysis
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {activity.recommendation}
+              </p>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-full bg-slate-200 my-4" />
+
+            {/* Improvements */}
+            {activity?.improvements && activity.improvements.length > 0 && (
+              <div className="mb-5 space-y-2">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Improvements
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                  {activity.improvements.map((improvement, index) => (
+                    <li key={index}>{improvement}</li>
+                  ))}
+                </ul>
+            </div>
+            )}
+
+            {/* Divider */}
+            {activity?.suggestions && activity.suggestions.length > 0 && (
+              <div className="h-px w-full bg-slate-200 my-4" />
+            )}
+
+            {/* Suggestions */}
+            {activity?.suggestions && activity.suggestions.length > 0 && (
+              <div className="mb-5 space-y-2">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Suggestions
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                  {activity.suggestions.map((suggestion, index) => (
+                    <li key={index}>{suggestion}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Divider */}
+            {activity?.safety && activity.safety.length > 0 && (
+              <div className="h-px w-full bg-slate-200 my-4" />
+            )}
+
+            {/* Safety Guidelines */}
+            {activity?.safety && activity.safety.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Safety guidelines
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                  {activity.safety.map((safety, index) => (
+                    <li key={index}>{safety}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default ActivityDetail;
