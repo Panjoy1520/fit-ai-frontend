@@ -115,7 +115,7 @@ function Pricing() {
               </div>
 
               <ul className="mt-4 space-y-2 text-sm text-slate-700">
-                <li>✔ Everything in Pro</li>
+                <li>✔ Everything in Pro with extra</li>
                 <li>✔ Custom training blocks & cycles</li>
                 <li>✔ Deep performance & recovery analytics</li>
                 <li>✔ Early access to new AI features</li>
